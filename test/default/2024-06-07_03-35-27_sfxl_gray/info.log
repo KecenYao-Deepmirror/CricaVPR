@@ -1,0 +1,40 @@
+2024-06-07 03:35:27   Arguments: Namespace(train_batch_size=72, patience=10, lr=0.0001, optim='adam', epochs_num=50, infer_batch_size=8, pca_dim=None, fc_output_dim=None, seed=0, foundation_model_path=None, resume='/mnt/nas/share-all/kecen/data/CricaVPR/CricaVPR.pth', device='cuda', num_workers=8, resize=[224, 224], test_method='hard_resize', majority_weight=0.01, efficient_ram_testing=False, val_positive_dist_threshold=25, train_positives_dist_threshold=10, recall_values=[1, 5, 10, 100], eval_datasets_folder=None, eval_dataset_cfg_file_path='/mnt/nas/share-all/kecen/code/Uranus/config/dataset/retrieval/sfxl_gray.yaml', eval_dataset_name='pitts30k', pca_dataset_folder=None, save_dir='test/default/2024-06-07_03-35-27_sfxl_gray', features_dim=10752)
+2024-06-07 03:35:27   The outputs are being saved in test/default/2024-06-07_03-35-27_sfxl_gray
+2024-06-07 03:35:27   using MLP layer as FFN
+2024-06-07 03:35:28   Resuming model from /mnt/nas/share-all/kecen/data/CricaVPR/CricaVPR.pth
+2024-06-07 03:35:36   Test set: sfxl_gray
+2024-06-07 03:35:36   Database number: 8015, queries number: 7983
+2024-06-07 03:35:38   
+Traceback (most recent call last):
+  File "/mnt/nas/share-all/kecen/code/Uranus/uranus/models/third_party/CricaVPR/eval.py", line 70, in <module>
+    recalls, recalls_str = test.test(args, test_ds, model, args.test_method, pca)
+  File "/mnt/nas/share-all/kecen/code/Uranus/uranus/models/third_party/CricaVPR/test.py", line 154, in test
+    features = model(inputs.to(args.device))
+  File "/opt/anaconda/envs/CricaVPR/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/opt/anaconda/envs/CricaVPR/lib/python3.9/site-packages/torch/nn/parallel/data_parallel.py", line 169, in forward
+    return self.module(*inputs[0], **kwargs[0])
+  File "/opt/anaconda/envs/CricaVPR/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/mnt/nas/share-all/kecen/code/Uranus/uranus/models/third_party/CricaVPR/network.py", line 54, in forward
+    x = self.backbone(x)
+  File "/opt/anaconda/envs/CricaVPR/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/mnt/nas/share-all/kecen/code/Uranus/uranus/models/third_party/CricaVPR/backbone/vision_transformer.py", line 291, in forward
+    ret = self.forward_features(*args, **kwargs)
+  File "/mnt/nas/share-all/kecen/code/Uranus/uranus/models/third_party/CricaVPR/backbone/vision_transformer.py", line 225, in forward_features
+    x = self.prepare_tokens_with_masks(x, masks)
+  File "/mnt/nas/share-all/kecen/code/Uranus/uranus/models/third_party/CricaVPR/backbone/vision_transformer.py", line 193, in prepare_tokens_with_masks
+    x = self.patch_embed(x)
+  File "/opt/anaconda/envs/CricaVPR/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/mnt/nas/share-all/kecen/code/Uranus/uranus/models/third_party/CricaVPR/backbone/dinov2/patch_embed.py", line 76, in forward
+    x = self.proj(x)  # B C H W
+  File "/opt/anaconda/envs/CricaVPR/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/opt/anaconda/envs/CricaVPR/lib/python3.9/site-packages/torch/nn/modules/conv.py", line 463, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+  File "/opt/anaconda/envs/CricaVPR/lib/python3.9/site-packages/torch/nn/modules/conv.py", line 459, in _conv_forward
+    return F.conv2d(input, weight, bias, self.stride,
+RuntimeError: Given groups=1, weight of size [768, 3, 14, 14], expected input[8, 1, 224, 224] to have 3 channels, but got 1 channels instead
+

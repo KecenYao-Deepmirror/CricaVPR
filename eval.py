@@ -12,13 +12,24 @@ import commons
 import datasets_ws
 import network
 import warnings
+
+import numpy as np
+
+import sys
+sys.path.append('../../../..')
+from uranus.data import build_data_loader, build_dataset
+from uranus.data.generator.registry import build_matcher_data_generator
+from uranus.utils.config import read_yaml_cfg
+from uranus.utils.matcher_utils import (compute_epipolar_error, compute_pose_error, estimate_pose)
+
 warnings.filterwarnings("ignore")
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 ######################################### SETUP #########################################
 args = parser.parse_arguments()
 start_time = datetime.now()
-args.save_dir = join("test", args.save_dir, start_time.strftime('%Y-%m-%d_%H-%M-%S'))
+test_ds_name,_ = os.path.splitext(os.path.basename(args.eval_dataset_cfg_file_path))
+args.save_dir = join("test", args.save_dir, start_time.strftime('%Y-%m-%d_%H-%M-%S_')+ test_ds_name)
 commons.setup_logging(args.save_dir)
 commons.make_deterministic(args.seed)
 
@@ -48,11 +59,14 @@ else:
     pca = util.compute_pca(args, model, args.pca_dataset_folder, full_features_dim)
 
 ######################################### DATASETS #########################################
-test_ds = datasets_ws.BaseDataset(args, args.eval_datasets_folder, args.eval_dataset_name, "test")
-logging.info(f"Test set: {test_ds}")
+# test_ds = datasets_ws.BaseDataset(args, args.eval_datasets_folder, args.eval_dataset_name, "test")
 
+cfg_file = args.eval_dataset_cfg_file_path
+# cfg_file = "/mnt/nas/share-all/kecen/code/Uranus/config/dataset/retrieval/inside_car_dense_det.yaml"
+cfg = read_yaml_cfg(cfg_file)
+test_ds = build_dataset(cfg.data_cfg.test.dataset_cfg)
+logging.info(f"Test set: {test_ds_name}")
 ######################################### TEST on TEST SET #########################################
 recalls, recalls_str = test.test(args, test_ds, model, args.test_method, pca)
-logging.info(f"Recalls on {test_ds}: {recalls_str}")
-
+logging.info(f"Recalls on {test_ds_name}: {recalls_str}")
 logging.info(f"Finished in {str(datetime.now() - start_time)[:-7]}")

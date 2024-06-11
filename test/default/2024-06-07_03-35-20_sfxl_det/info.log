@@ -1,0 +1,24 @@
+2024-06-07 03:35:20   Arguments: Namespace(train_batch_size=72, patience=10, lr=0.0001, optim='adam', epochs_num=50, infer_batch_size=8, pca_dim=None, fc_output_dim=None, seed=0, foundation_model_path=None, resume='/mnt/nas/share-all/kecen/data/CricaVPR/CricaVPR.pth', device='cuda', num_workers=8, resize=[224, 224], test_method='hard_resize', majority_weight=0.01, efficient_ram_testing=False, val_positive_dist_threshold=25, train_positives_dist_threshold=10, recall_values=[1, 5, 10, 100], eval_datasets_folder=None, eval_dataset_cfg_file_path='/mnt/nas/share-all/kecen/code/Uranus/config/dataset/retrieval/sfxl_det.yaml', eval_dataset_name='pitts30k', pca_dataset_folder=None, save_dir='test/default/2024-06-07_03-35-20_sfxl_det', features_dim=10752)
+2024-06-07 03:35:20   The outputs are being saved in test/default/2024-06-07_03-35-20_sfxl_det
+2024-06-07 03:35:20   using MLP layer as FFN
+2024-06-07 03:35:22   Resuming model from /mnt/nas/share-all/kecen/data/CricaVPR/CricaVPR.pth
+2024-06-07 03:35:22   
+Traceback (most recent call last):
+  File "/mnt/nas/share-all/kecen/code/Uranus/uranus/models/third_party/CricaVPR/eval.py", line 67, in <module>
+    test_ds = build_dataset(cfg.data_cfg.test.dataset_cfg)
+  File "/mnt/nas/share-all/kecen/code/Uranus/uranus/models/third_party/CricaVPR/../../../../uranus/data/registry.py", line 11, in build_dataset
+    return DATASET_REGISTRY.build(cfg, **default_args)
+  File "/mnt/nas/share-all/kecen/code/Uranus/uranus/models/third_party/CricaVPR/../../../../uranus/utils/registry.py", line 62, in build
+    return self[obj_name](*args, **func_args)
+  File "/mnt/nas/share-all/kecen/code/Uranus/uranus/models/third_party/CricaVPR/../../../../uranus/data/dataset/retrieval_dataset.py", line 25, in __init__
+    self._data_generator = build_retrieval_data_generator(generator_cfg)
+  File "/mnt/nas/share-all/kecen/code/Uranus/uranus/models/third_party/CricaVPR/../../../../uranus/data/generator/registry.py", line 11, in build_retrieval_data_generator
+    return RETRIEVAL_DATA_GENERATOR_REGISTRY.build(cfg, **default_args)
+  File "/mnt/nas/share-all/kecen/code/Uranus/uranus/models/third_party/CricaVPR/../../../../uranus/utils/registry.py", line 62, in build
+    return self[obj_name](*args, **func_args)
+  File "/mnt/nas/share-all/kecen/code/Uranus/uranus/models/third_party/CricaVPR/../../../../uranus/data/generator/retrieval/sfxl_data_generator.py", line 31, in __init__
+    self.initialize(dataset_folder)
+  File "/mnt/nas/share-all/kecen/code/Uranus/uranus/models/third_party/CricaVPR/../../../../uranus/data/generator/retrieval/sfxl_data_generator.py", line 45, in initialize
+    raise FileNotFoundError(f"Folder {dataset_folder} does not exist")
+FileNotFoundError: Folder /mnt/data/sijin/SF_XL/val does not exist
+

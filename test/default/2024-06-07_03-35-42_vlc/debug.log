@@ -1,0 +1,11 @@
+2024-06-07 03:35:42   Arguments: Namespace(train_batch_size=72, patience=10, lr=0.0001, optim='adam', epochs_num=50, infer_batch_size=8, pca_dim=None, fc_output_dim=None, seed=0, foundation_model_path=None, resume='/mnt/nas/share-all/kecen/data/CricaVPR/CricaVPR.pth', device='cuda', num_workers=8, resize=[224, 224], test_method='hard_resize', majority_weight=0.01, efficient_ram_testing=False, val_positive_dist_threshold=25, train_positives_dist_threshold=10, recall_values=[1, 5, 10, 100], eval_datasets_folder=None, eval_dataset_cfg_file_path='/mnt/nas/share-all/kecen/code/Uranus/config/dataset/retrieval/vlc.yaml', eval_dataset_name='pitts30k', pca_dataset_folder=None, save_dir='test/default/2024-06-07_03-35-42_vlc', features_dim=10752)
+2024-06-07 03:35:42   The outputs are being saved in test/default/2024-06-07_03-35-42_vlc
+2024-06-07 03:35:42   using MLP layer as FFN
+2024-06-07 03:35:44   Resuming model from /mnt/nas/share-all/kecen/data/CricaVPR/CricaVPR.pth
+2024-06-07 03:36:18   Test set: vlc
+2024-06-07 03:36:18   Database number: 2760, queries number: 149
+2024-06-07 03:36:18   Extracting database features for evaluation/testing
+2024-06-07 03:42:16   Extracting queries features for evaluation/testing
+2024-06-07 03:42:31   Calculating recalls
+2024-06-07 03:42:31   Recalls on vlc: R@1: 0.0, R@5: 12.1, R@10: 24.8, R@100: 85.2
+2024-06-07 03:42:31   Finished in 0:06:49
