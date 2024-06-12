@@ -7,6 +7,8 @@ import numpy as np
 from collections import OrderedDict
 from os.path import join
 from sklearn.decomposition import PCA
+import pickle
+from tqdm import tqdm
 
 import datasets_ws
 
@@ -50,13 +52,30 @@ def resume_train(args, model, optimizer=None, strict=False):
     return model, optimizer, best_r5, start_epoch_num, not_improved_num
 
 
-def compute_pca(args, model, pca_dataset_folder, full_features_dim):
+# def compute_pca(args, model, pca_dataset_folder, full_features_dim):
+#     model = model.eval()
+#     pca_ds = datasets_ws.PCADataset(args, args.eval_datasets_folder, pca_dataset_folder)
+#     dl = torch.utils.data.DataLoader(pca_ds, args.infer_batch_size, shuffle=True)
+#     pca_features = np.empty([min(len(pca_ds), 2**14), full_features_dim])
+#     with torch.no_grad():
+#         for i, images in enumerate(dl):
+#             if i*args.infer_batch_size >= len(pca_features):
+#                 break
+#             features = model(images).cpu().numpy()
+#             pca_features[i*args.infer_batch_size : (i*args.infer_batch_size)+len(features)] = features
+#     pca = PCA(args.pca_dim)
+#     pca.fit(pca_features)
+#     return pca
+
+
+def compute_pca(args, model, pca_dataset, full_features_dim):
     model = model.eval()
-    pca_ds = datasets_ws.PCADataset(args, args.eval_datasets_folder, pca_dataset_folder)
+    pca_ds = pca_dataset
     dl = torch.utils.data.DataLoader(pca_ds, args.infer_batch_size, shuffle=True)
     pca_features = np.empty([min(len(pca_ds), 2**14), full_features_dim])
     with torch.no_grad():
-        for i, images in enumerate(dl):
+        for i, data in enumerate(tqdm(dl, desc="Computing PCA features")):
+            images, _, _ = data
             if i*args.infer_batch_size >= len(pca_features):
                 break
             features = model(images).cpu().numpy()
@@ -64,3 +83,19 @@ def compute_pca(args, model, pca_dataset_folder, full_features_dim):
     pca = PCA(args.pca_dim)
     pca.fit(pca_features)
     return pca
+
+def save_pca(args, pca_model, saved_path):
+    with open(saved_path,'wb') as pickle_file:
+        pickle.dump(pca_model,pickle_file)
+
+def load_pca(args, model_path):
+    with open(model_path,'rb') as pickle_file:
+        pca = pickle.load(pickle_file)
+    return pca
+
+def load_cosplace(dim):
+    model = torch.hub.load("gmberton/cosplace",
+                           "get_trained_model",
+                           backbone="ResNet50",
+                           fc_output_dim=dim)
+    return model

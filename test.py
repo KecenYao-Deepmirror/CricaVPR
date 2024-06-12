@@ -132,8 +132,6 @@ def test(args, eval_ds, model, test_method="hard_resize", pca=None):
     logging.info(f"Database number: {eval_ds.database_num}, queries number: {eval_ds.queries_num}")
     eval_ds.db_indices = [eval_ds._data_list.index(item) for item in eval_ds.database_data_list]
     eval_ds.q_indices = [eval_ds._data_list.index(item) for item in eval_ds.query_data_list]
-    print(eval_ds.db_indices[:10])
-    print(eval_ds.q_indices[:10])
     
     with torch.no_grad():
         logging.debug("Extracting database features for evaluation/testing")
@@ -150,23 +148,64 @@ def test(args, eval_ds, model, test_method="hard_resize", pca=None):
         else:
             all_features = np.empty((len(eval_ds), args.features_dim), dtype="float32")
 
-        for inputs, fnames, indices in tqdm(database_dataloader, ncols=100):
+        # Initialize CUDA events for database inference timing
+        steps = len(database_dataloader)
+        db_start_events = [torch.cuda.Event(enable_timing=True) for _ in range(steps)]
+        db_end_events = [torch.cuda.Event(enable_timing=True) for _ in range(steps)]
+        if pca != None:
+            db_pca_end_events = [torch.cuda.Event(enable_timing=True) for _ in range(steps)]
+
+
+        db_inference_times = []
+        db_pca_inference_times = []
+        for i, (inputs, fnames, indices) in enumerate(tqdm(database_dataloader, ncols=100)):
+            db_start_events[i].record()
             features = model(inputs.to(args.device))
+            db_end_events[i].record()
+            torch.cuda.synchronize()
+
             features = features.cpu().numpy()
             if pca != None:
                 features = pca.transform(features)
+                db_pca_end_events[i].record()
+                torch.cuda.synchronize()
             all_features[indices.numpy(), :] = features
-        
+
+            db_batch_time = db_start_events[i].elapsed_time(db_end_events[i]) / 1000  # Convert milliseconds to seconds
+            db_inference_times.extend([db_batch_time / len(inputs)] * len(inputs))  # Time per image
+
+            if pca != None:
+                db_pca_batch_time = db_start_events[i].elapsed_time(db_pca_end_events[i]) / 1000  # Convert milliseconds to seconds
+                db_pca_inference_times.extend([db_pca_batch_time / len(inputs)] * len(inputs))  # Time per image
+
+        avg_db_inference_time = sum(db_inference_times) / len(db_inference_times)
+        logging.info(f"Average database inference time per image: {avg_db_inference_time:.6f} seconds")
+        if pca != None:
+            avg_db_pca_inference_time = sum(db_pca_inference_times) / len(db_pca_inference_times)
+            logging.info(f"Average database inference time(PCA) per image: {avg_db_pca_inference_time:.6f} seconds")
+
         logging.debug("Extracting queries features for evaluation/testing")
         queries_infer_batch_size = 1 if test_method == "single_query" else args.infer_batch_size
         eval_ds.test_method = test_method
         queries_subset_ds = Subset(eval_ds, eval_ds.q_indices)
         queries_dataloader = DataLoader(dataset=queries_subset_ds, num_workers=args.num_workers,
                                         batch_size=queries_infer_batch_size, pin_memory=(args.device=="cuda"))
-        for inputs, fnames, indices in tqdm(queries_dataloader, ncols=100):
+        
+        # Initialize CUDA events for queries inference timing
+        steps = len(queries_dataloader)
+        query_start_events = [torch.cuda.Event(enable_timing=True) for _ in range(steps)]
+        query_end_events = [torch.cuda.Event(enable_timing=True) for _ in range(steps)]
+        query_inference_times = []
+
+        for i, (inputs, fnames, indices) in enumerate(tqdm(queries_dataloader, ncols=100)):
             if test_method == "five_crops" or test_method == "nearest_crop" or test_method == 'maj_voting':
                 inputs = torch.cat(tuple(inputs))  # shape = 5*bs x 3 x 480 x 480
+
+            query_start_events[i].record()
             features = model(inputs.to(args.device))
+            query_end_events[i].record()
+            torch.cuda.synchronize()
+
             if test_method == "five_crops":  # Compute mean along the 5 crops
                 features = torch.stack(torch.split(features, 5)).mean(1)
             features = features.cpu().numpy()
@@ -180,6 +219,12 @@ def test(args, eval_ds, model, test_method="hard_resize", pca=None):
                 all_features[indices, :] = features
             else:
                 all_features[indices.numpy(), :] = features
+
+            query_batch_time = query_start_events[i].elapsed_time(query_end_events[i]) / 1000  # Convert milliseconds to seconds
+            query_inference_times.extend([query_batch_time / len(inputs)] * len(inputs))  # Time per image
+
+        avg_query_inference_time = sum(query_inference_times) / len(query_inference_times)
+        logging.info(f"Average queries inference time per image: {avg_query_inference_time:.6f} seconds")
 
     queries_features = all_features[eval_ds.q_indices]
     database_features = all_features[eval_ds.db_indices]

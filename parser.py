@@ -8,6 +8,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="Benchmarking Visual Geolocalization",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # Training parameters
+    parser.add_argument("--model", type=str, default="CricaVPR", help="retrieval model", choices=["CricaVPR", "Cosplace"])
     parser.add_argument("--train_batch_size", type=int, default=72,
                         help="Number of triplets (query, pos, negs) in a batch. Each triplet consists of 12 images")
     parser.add_argument("--patience", type=int, default=10)
@@ -82,8 +83,8 @@ def parse_arguments():
     #                         "the DATASETS_FOLDER environment variable as such \n" +
     #                         "export DATASETS_FOLDER=../datasets_vg/datasets")
     
-    if args.pca_dim != None and args.pca_dataset_folder == None:
-        raise ValueError("Please specify --pca_dataset_folder when using pca")
+    # if args.pca_dim != None and args.pca_dataset_folder == None:
+    #     raise ValueError("Please specify --pca_dataset_folder when using pca")
     
     return args
 
